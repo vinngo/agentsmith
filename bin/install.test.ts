@@ -1,157 +1,208 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from "fs";
+import { test, expect, describe } from "bun:test";
 import { join } from "path";
-import { tmpdir, homedir } from "os";
+import { homedir } from "os";
 
 import {
-  getConfigDirFromHome,
-  expandTilde,
+  getDirName,
+  getSkillsDir,
   getGlobalDir,
-  copyWithPathReplacement,
-  buildHookCommand,
+  convertToOpencode,
+  convertToGeminiAgent,
+  convertToGeminiToml,
 } from "./install";
 
-// ─── getConfigDirFromHome ────────────────────────────────────────────────────
+// ─── getDirName ──────────────────────────────────────────────────────────────
 
-describe("getConfigDirFromHome", () => {
-  test("returns '.claude' for local installs", () => {
-    expect(getConfigDirFromHome(false)).toBe(".claude");
+describe("getDirName", () => {
+  test("returns .opencode for opencode", () => {
+    expect(getDirName("opencode")).toBe(".opencode");
   });
 
-  test("returns backtick-wrapped '.claude' for global installs", () => {
-    expect(getConfigDirFromHome(true)).toBe("`.claude`");
-  });
-});
-
-// ─── expandTilde ─────────────────────────────────────────────────────────────
-
-describe("expandTilde", () => {
-  test("expands leading ~/ to home directory", () => {
-    const result = expandTilde("~/foo/bar");
-    expect(result).toBe(join(homedir(), "foo/bar"));
+  test("returns .gemini for gemini", () => {
+    expect(getDirName("gemini")).toBe(".gemini");
   });
 
-  test("leaves paths without ~/ unchanged", () => {
-    expect(expandTilde("/absolute/path")).toBe("/absolute/path");
-    expect(expandTilde("relative/path")).toBe("relative/path");
+  test("returns .claude for claude", () => {
+    expect(getDirName("claude")).toBe(".claude");
   });
 
-  test("leaves a bare ~ unchanged (no trailing slash)", () => {
-    expect(expandTilde("~")).toBe("~");
-  });
-
-  test("handles empty string", () => {
-    expect(expandTilde("")).toBe("");
+  test("returns .claude for unknown runtimes", () => {
+    expect(getDirName("unknown")).toBe(".claude");
   });
 });
 
 // ─── getGlobalDir ────────────────────────────────────────────────────────────
 
 describe("getGlobalDir", () => {
-  test("defaults to ~/.claude when no dir is given", () => {
-    expect(getGlobalDir()).toBe(join(homedir(), ".claude"));
+  test("returns ~/.claude for claude", () => {
+    expect(getGlobalDir("claude")).toBe(join(homedir(), ".claude"));
   });
 
-  test("returns the explicit dir when provided", () => {
-    expect(getGlobalDir("/custom/dir" as any)).toBe("/custom/dir");
+  test("returns ~/.config/opencode for opencode", () => {
+    expect(getGlobalDir("opencode")).toBe(join(homedir(), ".config", "opencode"));
   });
 
-  test("expands tilde in explicit dir", () => {
-    expect(getGlobalDir("~/custom" as any)).toBe(join(homedir(), "custom"));
-  });
-});
-
-// ─── buildHookCommand ────────────────────────────────────────────────────────
-
-describe("buildHookCommand", () => {
-  test("builds a node command with the hook path", () => {
-    const result = buildHookCommand("/home/user/.claude", "pre-commit.js");
-    expect(result).toBe('node "/home/user/.claude/hooks/pre-commit.js"');
-  });
-
-  test("normalises Windows-style backslashes to forward slashes", () => {
-    const result = buildHookCommand("C:\\Users\\user\\.claude", "hook.js");
-    expect(result).toBe('node "C:/Users/user/.claude/hooks/hook.js"');
-  });
-
-  test("handles hook names with spaces", () => {
-    const result = buildHookCommand("/home/user/.claude", "my hook.js");
-    expect(result).toBe('node "/home/user/.claude/hooks/my hook.js"');
+  test("returns ~/.gemini for gemini", () => {
+    expect(getGlobalDir("gemini")).toBe(join(homedir(), ".gemini"));
   });
 });
 
-// ─── copyWithPathReplacement ─────────────────────────────────────────────────
+// ─── getSkillsDir ────────────────────────────────────────────────────────────
 
-describe("copyWithPathReplacement", () => {
-  let src: string;
-  let dest: string;
-
-  beforeEach(() => {
-    src = mkdtempSync(join(tmpdir(), "agentsmith-src-"));
-    dest = mkdtempSync(join(tmpdir(), "agentsmith-dest-"));
+describe("getSkillsDir", () => {
+  test("opencode uses singular flat 'command/' dir", () => {
+    expect(getSkillsDir("/base", "opencode")).toBe("/base/command");
   });
 
-  afterEach(() => {
-    if (existsSync(src)) rmSync(src, { recursive: true });
-    if (existsSync(dest)) rmSync(dest, { recursive: true });
+  test("claude uses nested 'commands/agentsmith/'", () => {
+    expect(getSkillsDir("/base", "claude")).toBe("/base/commands/agentsmith");
   });
 
-  test("copies markdown files with path replacement", () => {
-    writeFileSync(join(src, "CLAUDE.md"), "See ~/\.claude/hooks for details");
+  test("gemini uses nested 'commands/agentsmith/'", () => {
+    expect(getSkillsDir("/base", "gemini")).toBe("/base/commands/agentsmith");
+  });
+});
 
-    copyWithPathReplacement(src, dest, "/custom/prefix/", "claude");
+// ─── convertToOpencode ───────────────────────────────────────────────────────
 
-    const result = readFileSync(join(dest, "CLAUDE.md"), "utf8");
-    expect(result).toBe("See /custom/prefix/hooks for details");
+describe("convertToOpencode", () => {
+  test("replaces AskUserQuestion, SlashCommand, TodoWrite in body", () => {
+    const input = `---\ndescription: test\n---\nUse AskUserQuestion, SlashCommand, TodoWrite here`;
+    const result = convertToOpencode(input);
+    expect(result).toContain("question");
+    expect(result).toContain("skill");
+    expect(result).toContain("todowrite");
+    expect(result).not.toContain("AskUserQuestion");
+    expect(result).not.toContain("SlashCommand");
+    expect(result).not.toContain("TodoWrite");
   });
 
-  test("replaces all occurrences of ~/\.claude/ in markdown", () => {
-    writeFileSync(
-      join(src, "README.md"),
-      "Path 1: ~/\.claude/a\nPath 2: ~/\.claude/b"
-    );
-
-    copyWithPathReplacement(src, dest, "/prefix/", "claude");
-
-    const result = readFileSync(join(dest, "README.md"), "utf8");
-    expect(result).toBe("Path 1: /prefix/a\nPath 2: /prefix/b");
+  test("replaces ~/.claude path references", () => {
+    const input = `---\ndescription: test\n---\nSee ~/.claude for config`;
+    const result = convertToOpencode(input);
+    expect(result).toContain("~/.config/opencode");
+    expect(result).not.toContain("~/.claude");
   });
 
-  test("copies non-markdown files verbatim without replacement", () => {
-    writeFileSync(join(src, "hook.js"), 'const p = "~/.claude/hooks"');
-
-    copyWithPathReplacement(src, dest, "/prefix/", "claude");
-
-    const result = readFileSync(join(dest, "hook.js"), "utf8");
-    expect(result).toBe('const p = "~/.claude/hooks"');
+  test("converts tools list to opencode object format", () => {
+    const input = `---\ntools: Read, Write, AskUserQuestion\n---\nbody`;
+    const result = convertToOpencode(input);
+    expect(result).toContain("read: true");
+    expect(result).toContain("write: true");
+    expect(result).toContain("question: true");
   });
 
-  test("recreates destDir if it already exists", () => {
-    const existingFile = join(dest, "stale.md");
-    writeFileSync(existingFile, "stale content");
-    writeFileSync(join(src, "new.md"), "new content");
-
-    copyWithPathReplacement(src, dest, "/prefix/", "claude");
-
-    expect(existsSync(existingFile)).toBe(false);
-    expect(existsSync(join(dest, "new.md"))).toBe(true);
+  test("strips the 'name:' field from frontmatter", () => {
+    const input = `---\nname: my-agent\ndescription: test\n---\nbody`;
+    const result = convertToOpencode(input);
+    expect(result).not.toContain("name: my-agent");
+    expect(result).toContain("description: test");
   });
 
-  test("handles an empty source directory", () => {
-    copyWithPathReplacement(src, dest, "/prefix/", "claude");
-    // dest exists and is empty — no error thrown
-    expect(existsSync(dest)).toBe(true);
+  test("converts named color to hex", () => {
+    const input = `---\ncolor: cyan\n---\nbody`;
+    const result = convertToOpencode(input);
+    expect(result).toContain(`color: "#00FFFF"`);
   });
 
-  test("copies multiple files in one pass", () => {
-    writeFileSync(join(src, "a.md"), "~/\.claude/a");
-    writeFileSync(join(src, "b.md"), "~/\.claude/b");
-    writeFileSync(join(src, "c.js"), "unchanged");
+  test("preserves hex color as-is", () => {
+    const input = `---\ncolor: #1a2b3c\n---\nbody`;
+    const result = convertToOpencode(input);
+    expect(result).toContain("#1a2b3c");
+  });
 
-    copyWithPathReplacement(src, dest, "/p/", "claude");
+  test("passes through content with no frontmatter unchanged (except substitutions)", () => {
+    const input = "just a plain body with no frontmatter";
+    expect(convertToOpencode(input)).toBe(input);
+  });
 
-    expect(readFileSync(join(dest, "a.md"), "utf8")).toBe("/p/a");
-    expect(readFileSync(join(dest, "b.md"), "utf8")).toBe("/p/b");
-    expect(readFileSync(join(dest, "c.js"), "utf8")).toBe("unchanged");
+  test("passes mcp__ tool names through unchanged", () => {
+    const input = `---\ntools: mcp__supabase__query\n---\nbody`;
+    const result = convertToOpencode(input);
+    expect(result).toContain("mcp__supabase__query: true");
+  });
+});
+
+// ─── convertToGeminiAgent ────────────────────────────────────────────────────
+
+describe("convertToGeminiAgent", () => {
+  test("converts tools to YAML list format", () => {
+    const input = `---\ntools: Read, Write, Bash\n---\nbody`;
+    const result = convertToGeminiAgent(input);
+    expect(result).toContain("  - read_file");
+    expect(result).toContain("  - write_file");
+    expect(result).toContain("  - run_shell_command");
+  });
+
+  test("drops the Task tool (no Gemini equivalent)", () => {
+    const input = `---\ntools: Read, Task\n---\nbody`;
+    const result = convertToGeminiAgent(input);
+    expect(result).not.toContain("task");
+    expect(result).toContain("  - read_file");
+  });
+
+  test("drops mcp__ tools", () => {
+    const input = `---\ntools: Read, mcp__supabase__query\n---\nbody`;
+    const result = convertToGeminiAgent(input);
+    expect(result).not.toContain("mcp__");
+  });
+
+  test("strips color field from frontmatter", () => {
+    const input = `---\nname: agent\ncolor: cyan\n---\nbody`;
+    const result = convertToGeminiAgent(input);
+    expect(result).not.toContain("color:");
+    expect(result).toContain("name: agent");
+  });
+
+  test("converts ${var} expressions to $var in body", () => {
+    const input = "---\nname: agent\n---\nHello ${name}!";
+    const result = convertToGeminiAgent(input);
+    // JS replacement '$$$1' produces a literal $ + capture group (i.e. $name, not $$name)
+    expect(result).toContain("$name");
+    expect(result).not.toContain("${name}");
+  });
+
+  test("converts <sub> tags to italic parens in body", () => {
+    const input = `---\nname: agent\n---\nSee <sub>note</sub>`;
+    const result = convertToGeminiAgent(input);
+    expect(result).toContain("*(note)*");
+    expect(result).not.toContain("<sub>");
+  });
+
+  test("returns content unchanged when no frontmatter", () => {
+    const input = "plain body";
+    expect(convertToGeminiAgent(input)).toBe("plain body");
+  });
+});
+
+// ─── convertToGeminiToml ─────────────────────────────────────────────────────
+
+describe("convertToGeminiToml", () => {
+  test("produces a prompt = ... TOML entry from body", () => {
+    const input = `---\ndescription: Do a thing\n---\nThis is the prompt body`;
+    const result = convertToGeminiToml(input);
+    expect(result).toContain('description = "Do a thing"');
+    expect(result).toContain('prompt = "This is the prompt body"');
+  });
+
+  test("omits description key when not present in frontmatter", () => {
+    const input = `---\nname: my-skill\n---\nPrompt text`;
+    const result = convertToGeminiToml(input);
+    expect(result).not.toContain("description");
+    expect(result).toContain('prompt = "Prompt text"');
+  });
+
+  test("wraps bare content (no frontmatter) as prompt value", () => {
+    const input = "no frontmatter here";
+    const result = convertToGeminiToml(input);
+    expect(result).toContain('prompt =');
+    expect(result).toContain("no frontmatter here");
+  });
+
+  test("handles multiline prompt body", () => {
+    const input = `---\ndescription: test\n---\nLine 1\nLine 2`;
+    const result = convertToGeminiToml(input);
+    expect(result).toContain("Line 1");
+    expect(result).toContain("Line 2");
   });
 });

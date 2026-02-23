@@ -88,16 +88,25 @@ if (hasHelp) {
 /**
  * Get directory name for a runtime
  */
-function getDirName(runtime: string): string {
+export function getDirName(runtime: string): string {
   if (runtime === 'opencode') return '.opencode';
   if (runtime === 'gemini') return '.gemini';
   return '.claude';
 }
 
 /**
+ * Get the skills/commands destination directory for a runtime.
+ * OpenCode uses a flat 'command/' (singular); others use 'commands/agentsmith/' (nested).
+ */
+export function getSkillsDir(targetDir: string, runtime: string): string {
+  if (runtime === 'opencode') return join(targetDir, 'command');
+  return join(targetDir, 'commands', 'agentsmith');
+}
+
+/**
  * Get global config directory for a runtime
  */
-function getGlobalDir(runtime: string): string {
+export function getGlobalDir(runtime: string): string {
   if (runtime === 'opencode') {
     return join(homedir(), '.config', 'opencode');
   }
@@ -166,7 +175,7 @@ function stripSubTags(content: string): string {
 /**
  * Convert Claude Code frontmatter to OpenCode format
  */
-function convertToOpencode(content: string): string {
+export function convertToOpencode(content: string): string {
   let out = content;
   out = out.replace(/\bAskUserQuestion\b/g, 'question');
   out = out.replace(/\bSlashCommand\b/g, 'skill');
@@ -213,7 +222,7 @@ function convertToOpencode(content: string): string {
 /**
  * Convert Claude Code agent frontmatter to Gemini CLI format
  */
-function convertToGeminiAgent(content: string): string {
+export function convertToGeminiAgent(content: string): string {
   if (!content.startsWith('---')) return content;
 
   const endIndex = content.indexOf('---', 3);
@@ -253,7 +262,7 @@ function convertToGeminiAgent(content: string): string {
 /**
  * Convert Claude Code skill to Gemini TOML format
  */
-function convertToGeminiToml(content: string): string {
+export function convertToGeminiToml(content: string): string {
   if (!content.startsWith('---')) return `prompt = ${JSON.stringify(content)}\n`;
 
   const endIndex = content.indexOf('---', 3);
@@ -294,12 +303,16 @@ function copyDir(
   destDir: string,
   pathPrefix: string,
   runtime: string,
-  isSkill = false
+  isSkill = false,
+  flat = false,
+  _skipClean = false
 ): void {
   const dirName = getDirName(runtime);
 
-  if (existsSync(destDir)) rmSync(destDir, { recursive: true });
-  mkdirSync(destDir, { recursive: true });
+  if (!_skipClean) {
+    if (existsSync(destDir)) rmSync(destDir, { recursive: true });
+    mkdirSync(destDir, { recursive: true });
+  }
   if (!existsSync(srcDir)) return;
 
   for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
@@ -307,7 +320,12 @@ function copyDir(
     const destPath = join(destDir, entry.name);
 
     if (entry.isDirectory()) {
-      copyDir(srcPath, destPath, pathPrefix, runtime, isSkill);
+      if (flat) {
+        // Recurse into subdirectory but keep writing into the same flat destDir
+        copyDir(srcPath, destDir, pathPrefix, runtime, isSkill, true, true);
+      } else {
+        copyDir(srcPath, destPath, pathPrefix, runtime, isSkill, false, false);
+      }
     } else if (entry.name.endsWith('.md')) {
       let content = readFileSync(srcPath, 'utf8');
       content = content.replace(/~\/\.claude\//g, pathPrefix);
@@ -344,11 +362,12 @@ function uninstall(isGlobal: boolean, runtime: string): void {
 
   let removedCount = 0;
 
-  const commandsDir = join(targetDir, 'commands', 'agentsmith');
+  const commandsDir = getSkillsDir(targetDir, runtime);
+  const commandsDirLabel = runtime === 'opencode' ? 'command/' : 'commands/agentsmith/';
   if (existsSync(commandsDir)) {
     rmSync(commandsDir, { recursive: true });
     removedCount++;
-    console.log(`  ${green}✓${reset} Removed commands/agentsmith/`);
+    console.log(`  ${green}✓${reset} Removed ${commandsDirLabel}`);
   }
 
   const agentsDir = join(targetDir, 'agents');
@@ -418,14 +437,15 @@ function install(isGlobal: boolean, runtime: string): void {
   // Install skills
   const skillsSrc = join(src, 'skills');
   if (existsSync(skillsSrc)) {
-    const skillsDest = join(targetDir, 'commands', 'agentsmith');
-    copyDir(skillsSrc, skillsDest, pathPrefix, runtime, true);
+    const skillsDest = getSkillsDir(targetDir, runtime);
+    const skillsDirLabel = runtime === 'opencode' ? 'command/' : 'commands/agentsmith/';
+    copyDir(skillsSrc, skillsDest, pathPrefix, runtime, true, runtime === 'opencode');
 
     if (existsSync(skillsDest)) {
-      console.log(`  ${green}✓${reset} Installed commands/agentsmith`);
+      console.log(`  ${green}✓${reset} Installed ${skillsDirLabel}`);
     } else {
-      console.error(`  ${yellow}✗${reset} Failed to install commands/agentsmith`);
-      failures.push('commands/agentsmith');
+      console.error(`  ${yellow}✗${reset} Failed to install ${skillsDirLabel}`);
+      failures.push(skillsDirLabel);
     }
   }
 
