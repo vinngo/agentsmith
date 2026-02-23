@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "agentsmith",
+      "name": "agentmancy",
       "devDependencies": {
         "@types/bun": "latest",
       },
