@@ -12,12 +12,18 @@ Build custom agents and skills that work across multiple AI coding assistants.
 - 🔄 **Auto-Transform**: Automatically converts formats for each runtime
 - 📦 **Easy Install**: One command to install everywhere
 
+## Requirements
+
+- [Bun](https://bun.sh) must be installed (`curl -fsSL https://bun.sh/install | bash`)
+
 ## Installation
 
 ### Interactive Install
 
 ```bash
-bun bin/install.ts
+npx agentmancy
+# or
+bunx agentmancy
 ```
 
 Follow the prompts to choose your runtime(s) and install location.
@@ -26,19 +32,20 @@ Follow the prompts to choose your runtime(s) and install location.
 
 ```bash
 # Install for Claude Code globally
-bun bin/install.ts --claude --global
+npx agentmancy --claude --global
 
 # Install for all runtimes globally
-bun bin/install.ts --all --global
+npx agentmancy --all --global
 
 # Install to current project only
-bun bin/install.ts --claude --local
+npx agentmancy --claude --local
 ```
 
 ### All Options
 
 ```bash
-bun bin/install.ts [options]
+npx agentmancy [options]
+# or: bunx agentmancy [options]
 
 Options:
   -g, --global        Install globally (to config directory)
@@ -108,18 +115,20 @@ bun install
 bun test
 
 # Install locally for testing
-bun bin/install.ts --claude --local
+npx agentmancy --claude --local
 ```
 
 ## Uninstall
 
 ```bash
 # Uninstall from Claude Code globally
-bun bin/install.ts --claude --global --uninstall
+npx agentmancy --claude --global --uninstall
 
 # Uninstall from all runtimes globally
-bun bin/install.ts --all --global --uninstall
+npx agentmancy --all --global --uninstall
 ```
+
+> You can also use `bunx` in place of `npx` for any of the above commands.
 
 ## License
 
