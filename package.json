@@ -1,6 +1,6 @@
 {
   "name": "agentmancy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AI Agent & Skill Builder for Claude Code, OpenCode, and Gemini",
   "module": "index.ts",
   "type": "module",
