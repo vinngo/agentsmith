@@ -2,15 +2,14 @@
 
 AI Agent & Skill Builder for Claude Code, OpenCode, and Gemini.
 
-Build custom agents and skills that work across multiple AI coding assistants.
+Build custom agents and skills tailored to your codebase using natural language.
 
 ## Features
 
-- 🤖 **Multi-Runtime Support**: Works with Claude Code, OpenCode, and Gemini
-- 🛠️ **Agent Builder**: Create specialized agents for specific tasks
-- ⚡ **Skill Builder**: Build reusable skills/commands
-- 🔄 **Auto-Transform**: Automatically converts formats for each runtime
-- 📦 **Easy Install**: One command to install everywhere
+- **Multi-Runtime Support**: Works with Claude Code, OpenCode, and Gemini
+- **Agent Builder**: Create specialized agents and skills for specific tasks
+- **Skill Builder**: Build reusable skills/commands
+- **Easy Install**: One command to install everywhere
 
 ## Requirements
 
