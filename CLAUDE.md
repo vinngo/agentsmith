@@ -1,4 +1,46 @@
 
+## Project Overview
+
+AgentMancy is an AI agent and skill builder for Claude Code, OpenCode, and Gemini. It ships a set of pre-built agents in `agents/` and skills in `skills/`, and an installation script (`bin/install.ts`) that copies and transforms them for each runtime.
+
+### Project Structure
+
+```
+agents/     - Agent definitions (Claude Code .md frontmatter format)
+skills/     - Skill/command definitions (same format)
+bin/
+  install.ts  - Installation script (multi-runtime, global/local)
+```
+
+### Installation Script
+
+`bin/install.ts` is the main entry point. Run it with:
+
+```sh
+bun bin/install.ts --claude --global    # install for Claude Code globally
+bun bin/install.ts --all --global       # install for all runtimes globally
+bun bin/install.ts --help               # show all options
+```
+
+- Agents are installed to `<configDir>/agents/` with the `agentmancy-` prefix preserved.
+- Skills are installed to `<configDir>/commands/agentmancy/`.
+- Transformations are applied per runtime (path replacement, frontmatter conversion, tool name mapping, TOML for Gemini).
+
+### Agent/Skill Format
+
+Agents and skills are `.md` files with YAML frontmatter in Claude Code format:
+
+```md
+---
+name: agentmancy-example
+description: Short description.
+tools: Read, Write, Glob, Grep
+model: sonnet
+---
+
+Prompt content here.
+```
+
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`

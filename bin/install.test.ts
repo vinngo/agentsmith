@@ -54,12 +54,12 @@ describe("getSkillsDir", () => {
     expect(getSkillsDir("/base", "opencode")).toBe("/base/command");
   });
 
-  test("claude uses nested 'commands/agentsmith/'", () => {
-    expect(getSkillsDir("/base", "claude")).toBe("/base/commands/agentsmith");
+  test("claude uses nested 'commands/agentmancy/'", () => {
+    expect(getSkillsDir("/base", "claude")).toBe("/base/commands/agentmancy");
   });
 
-  test("gemini uses nested 'commands/agentsmith/'", () => {
-    expect(getSkillsDir("/base", "gemini")).toBe("/base/commands/agentsmith");
+  test("gemini uses nested 'commands/agentmancy/'", () => {
+    expect(getSkillsDir("/base", "gemini")).toBe("/base/commands/agentmancy");
   });
 });
 

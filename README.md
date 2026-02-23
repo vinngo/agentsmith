@@ -1,4 +1,4 @@
-# AgentSmith
+# AgentMancy
 
 AI Agent & Skill Builder for Claude Code, OpenCode, and Gemini.
 
@@ -47,36 +47,36 @@ Options:
   --opencode          Install for OpenCode only
   --gemini            Install for Gemini only
   --all               Install for all runtimes
-  -u, --uninstall     Uninstall AgentSmith
+  -u, --uninstall     Uninstall AgentMancy
   -h, --help          Show help message
 ```
 
 ## Usage
 
-After installation, you'll have access to AgentSmith agents and skills:
+After installation, you'll have access to AgentMancy agents and skills:
 
 ### Agents
 
-- **agentsmith-agent-builder**: Build custom agents for your workflow
-- **agentsmith-skill-builder**: Create reusable skills/commands
-- **agentsmith-repository-analyzer**: Analyze codebases for structure and patterns
-- **agentsmith-verifier**: Verify agent and skill implementations
+- **agentmancy-agent-builder**: Build custom agents for your workflow
+- **agentmancy-skill-builder**: Create reusable skills/commands
+- **agentmancy-repository-analyzer**: Analyze codebases for structure and patterns
+- **agentmancy-verifier**: Verify agent and skill implementations
 
 Use agents via the Task tool:
 
 ```typescript
 // In Claude Code, OpenCode, or Gemini
-Task(subagent_type: "agentsmith-agent-builder", prompt: "Create an agent for...")
+Task(subagent_type: "agentmancy-agent-builder", prompt: "Create an agent for...")
 ```
 
 ### Skills
 
-Skills will be available as `/agentsmith:*` commands once the `skills/` directory is populated.
+Skills will be available as `/agentmancy:*` commands once the `skills/` directory is populated.
 
 ## Project Structure
 
 ```
-agentsmith/
+agentmancy/
 ├── agents/           # Pre-built agents
 ├── skills/           # Pre-built skills/commands (coming soon)
 ├── bin/
@@ -86,7 +86,7 @@ agentsmith/
 
 ## How It Works
 
-AgentSmith automatically transforms agent and skill definitions for each runtime:
+AgentMancy automatically transforms agent and skill definitions for each runtime:
 
 - **Claude Code**: Uses original `.md` format with YAML frontmatter
 - **OpenCode**: Converts to OpenCode format (tools object, hex colors, etc.)
@@ -99,7 +99,7 @@ This means you write once and deploy everywhere!
 ```bash
 # Clone the repo
 git clone <repo-url>
-cd agentsmith
+cd agentmancy
 
 # Install dependencies
 bun install

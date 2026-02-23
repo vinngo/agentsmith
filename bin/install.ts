@@ -43,12 +43,12 @@ const banner = '\n' +
   '  ██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║\n' +
   '  ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║\n' +
   '  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝' + reset + '\n' +
-  '   ███████╗███╗   ███╗██╗████████╗██╗  ██╗\n' +
-  '   ██╔════╝████╗ ████║██║╚══██╔══╝██║  ██║\n' +
-  '   ███████╗██╔████╔██║██║   ██║   ███████║\n' +
-  '   ╚════██║██║╚██╔╝██║██║   ██║   ██╔══██║\n' +
-  '   ███████║██║ ╚═╝ ██║██║   ██║   ██║  ██║\n' +
-  '   ╚══════╝╚═╝     ╚═╝╚═╝   ╚═╝   ╚═╝  ╚═╝\n' +
+  '   ███╗   ███╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗\n' +
+  '   ████╗ ████║██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝\n' +
+  '   ██╔████╔██║███████║██╔██╗ ██║██║      ╚████╔╝ \n' +
+  '   ██║╚██╔╝██║██╔══██║██║╚██╗██║██║       ╚██╔╝  \n' +
+  '   ██║ ╚═╝ ██║██║  ██║██║ ╚████║╚██████╗   ██║   \n' +
+  '   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   \n' +
   '\n' +
   '  AI Agent & Skill Builder ' + dim + 'v' + pkg.version + reset + '\n' +
   '  Build custom agents and skills for Claude Code, OpenCode, and Gemini.\n';
@@ -63,7 +63,7 @@ if (hasHelp) {
     ${cyan}--opencode${reset}          Install for OpenCode only
     ${cyan}--gemini${reset}            Install for Gemini only
     ${cyan}--all${reset}               Install for all runtimes
-    ${cyan}-u, --uninstall${reset}     Uninstall AgentSmith (remove all files)
+    ${cyan}-u, --uninstall${reset}     Uninstall AgentMancy (remove all files)
     ${cyan}-h, --help${reset}          Show this help message
 
   ${yellow}Examples:${reset}
@@ -79,7 +79,7 @@ if (hasHelp) {
     ${dim}# Install to current project only${reset}
     bun bin/install.ts --claude --local
 
-    ${dim}# Uninstall AgentSmith from Claude Code globally${reset}
+    ${dim}# Uninstall AgentMancy from Claude Code globally${reset}
     bun bin/install.ts --claude --global --uninstall
 `);
   process.exit(0);
@@ -96,11 +96,11 @@ export function getDirName(runtime: string): string {
 
 /**
  * Get the skills/commands destination directory for a runtime.
- * OpenCode uses a flat 'command/' (singular); others use 'commands/agentsmith/' (nested).
+ * OpenCode uses a flat 'command/' (singular); others use 'commands/agentmancy/' (nested).
  */
 export function getSkillsDir(targetDir: string, runtime: string): string {
   if (runtime === 'opencode') return join(targetDir, 'command');
-  return join(targetDir, 'commands', 'agentsmith');
+  return join(targetDir, 'commands', 'agentmancy');
 }
 
 /**
@@ -345,7 +345,7 @@ function copyDir(
 }
 
 /**
- * Uninstall AgentSmith files for a given runtime and location
+ * Uninstall AgentMancy files for a given runtime and location
  */
 function uninstall(isGlobal: boolean, runtime: string): void {
   const dirName = getDirName(runtime);
@@ -353,7 +353,7 @@ function uninstall(isGlobal: boolean, runtime: string): void {
   const locationLabel = isGlobal ? targetDir.replace(homedir(), '~') : targetDir.replace(process.cwd(), '.');
   const runtimeLabel = runtime === 'opencode' ? 'OpenCode' : runtime === 'gemini' ? 'Gemini' : 'Claude Code';
 
-  console.log(`  Uninstalling AgentSmith from ${cyan}${runtimeLabel}${reset} at ${cyan}${locationLabel}${reset}\n`);
+  console.log(`  Uninstalling AgentMancy from ${cyan}${runtimeLabel}${reset} at ${cyan}${locationLabel}${reset}\n`);
 
   if (!existsSync(targetDir)) {
     console.log(`  ${yellow}⚠${reset} Directory does not exist: ${locationLabel}\n  Nothing to uninstall.\n`);
@@ -363,7 +363,7 @@ function uninstall(isGlobal: boolean, runtime: string): void {
   let removedCount = 0;
 
   const commandsDir = getSkillsDir(targetDir, runtime);
-  const commandsDirLabel = runtime === 'opencode' ? 'command/' : 'commands/agentsmith/';
+  const commandsDirLabel = runtime === 'opencode' ? 'command/' : 'commands/agentmancy/';
   if (existsSync(commandsDir)) {
     rmSync(commandsDir, { recursive: true });
     removedCount++;
@@ -374,23 +374,23 @@ function uninstall(isGlobal: boolean, runtime: string): void {
   if (existsSync(agentsDir)) {
     let count = 0;
     for (const file of readdirSync(agentsDir)) {
-      if (file.startsWith('agentsmith-') && file.endsWith('.md')) {
+      if (file.startsWith('agentmancy-') && file.endsWith('.md')) {
         unlinkSync(join(agentsDir, file));
         count++;
       }
     }
     if (count > 0) {
       removedCount++;
-      console.log(`  ${green}✓${reset} Removed ${count} AgentSmith agents`);
+      console.log(`  ${green}✓${reset} Removed ${count} AgentMancy agents`);
     }
   }
 
-  if (removedCount === 0) console.log(`  ${yellow}⚠${reset} No AgentSmith files found to remove.`);
-  console.log(`\n  ${green}Done!${reset} AgentSmith has been uninstalled from ${runtimeLabel}.\n`);
+  if (removedCount === 0) console.log(`  ${yellow}⚠${reset} No AgentMancy files found to remove.`);
+  console.log(`\n  ${green}Done!${reset} AgentMancy has been uninstalled from ${runtimeLabel}.\n`);
 }
 
 /**
- * Install AgentSmith agents and skills for a given runtime and location
+ * Install AgentMancy agents and skills for a given runtime and location
  */
 function install(isGlobal: boolean, runtime: string): void {
   const dirName = getDirName(runtime);
@@ -410,9 +410,9 @@ function install(isGlobal: boolean, runtime: string): void {
     const agentsDest = join(targetDir, 'agents');
     mkdirSync(agentsDest, { recursive: true });
 
-    // Remove old agentsmith agents before copying
+    // Remove old agentmancy agents before copying
     for (const file of readdirSync(agentsDest)) {
-      if (file.startsWith('agentsmith-') && file.endsWith('.md')) {
+      if (file.startsWith('agentmancy-') && file.endsWith('.md')) {
         unlinkSync(join(agentsDest, file));
       }
     }
@@ -438,7 +438,7 @@ function install(isGlobal: boolean, runtime: string): void {
   const skillsSrc = join(src, 'skills');
   if (existsSync(skillsSrc)) {
     const skillsDest = getSkillsDir(targetDir, runtime);
-    const skillsDirLabel = runtime === 'opencode' ? 'command/' : 'commands/agentsmith/';
+    const skillsDirLabel = runtime === 'opencode' ? 'command/' : 'commands/agentmancy/';
     copyDir(skillsSrc, skillsDest, pathPrefix, runtime, true, runtime === 'opencode');
 
     if (existsSync(skillsDest)) {
@@ -454,10 +454,10 @@ function install(isGlobal: boolean, runtime: string): void {
     process.exit(1);
   }
 
-  console.log(`\n  ${green}Done!${reset} AgentSmith has been installed to ${runtimeLabel}.`);
+  console.log(`\n  ${green}Done!${reset} AgentMancy has been installed to ${runtimeLabel}.`);
   console.log(`\n  ${cyan}Next steps:${reset}`);
   console.log(`  - Launch ${runtimeLabel} and use the Task tool to invoke agents`);
-  console.log(`  - Build new agents and skills with agentsmith agents\n`);
+  console.log(`  - Build new agents and skills with agentmancy agents\n`);
 }
 
 function installAll(runtimes: string[], isGlobal: boolean): void {

@@ -1,11 +1,11 @@
 {
-  "name": "agentsmith",
+  "name": "agentmancy",
   "version": "0.1.0",
   "description": "AI Agent & Skill Builder for Claude Code, OpenCode, and Gemini",
   "module": "index.ts",
   "type": "module",
   "bin": {
-    "agentsmith": "./bin/install.ts"
+    "agentmancy": "./bin/install.ts"
   },
   "scripts": {
     "install": "bun bin/install.ts",
