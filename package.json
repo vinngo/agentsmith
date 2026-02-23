@@ -1,7 +1,28 @@
 {
   "name": "agentsmith",
+  "version": "0.1.0",
+  "description": "AI Agent & Skill Builder for Claude Code, OpenCode, and Gemini",
   "module": "index.ts",
   "type": "module",
+  "bin": {
+    "agentsmith": "./bin/install.ts"
+  },
+  "scripts": {
+    "install": "bun bin/install.ts",
+    "test": "bun test"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "opencode",
+    "gemini",
+    "ai",
+    "agents",
+    "skills",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {
     "@types/bun": "latest"
   },
