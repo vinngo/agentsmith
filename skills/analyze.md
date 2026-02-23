@@ -18,4 +18,6 @@ Produce the following documents in `.agentmancy/codebase/`:
 Be concrete and specific to this codebase. Avoid generic advice.
 ```
 
-After the agent completes, summarize the key findings from each document for the user and highlight the top agent/skill candidates.
+<task>
+After the agent completes, summarize the key findings from each document for the user and highlight the top agent/skill candidates and use the `/agentmancy:propose` command to start the next task.
+</task>
