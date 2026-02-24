@@ -25,34 +25,24 @@ Secondly present all the agents proposed for the user to select using the `AskUs
 Do NOT include a **skip** or a "you decide" option.
 </task>
 
-Once the user has submitted their respone, use the Task tool to launch the `agentmancy-skill-builder` agent with the following prompt and formatting:
+Once the user has submitted their response, dispatch builders in parallel:
 
-type Skill = {
-  name: string;
-  function: string;
-  description: string;
-  rationale: string;
-  tools: string[];
-};
+**Skills**: Launch one `agentmancy-skill-builder` Task per chosen skill. Each agent receives a single skill object:
 
-type Agent = {
-  name: string;
-  function: string;
-  description: string;
-  rationale: string;
-  tools: string[];
-};
+\```
+Build the following skill and write it to skills/.
 
-```
-Given the following documents in `.agentmancy/codebase/`:
-- CANDIDATES.md: A high level overview of what skills should be generated
-- chosen_skills: Skill[] /* User's chosen skills here */
-```
+CANDIDATES.md context: <paste relevant excerpt>
 
-Once the `agentmancy-skill-builder` is finished, use the Launch tool to launch an `agentmancy-agentbuilder` agent with the following prompt.
+skill: {
+  name: "...",
+  function: "...",
+  description: "...",
+  rationale: "...",
+  tools: [...]
+}
+\```
 
-```
-Given the following documents in `.agentmancy/codebase/`:
-- CANDIDATES.md: A high level overview of what agents should be generated
-- chosen_agents: Agent[] /* User's chosen agents here */
-```
+**Agents**: Simultaneously, launch one `agentmancy-agent-builder` Task per chosen agent, each with a single agent object in the same format.
+
+Wait for all Tasks to complete, then summarize what was written.
