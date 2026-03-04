@@ -4,6 +4,8 @@ AI Agent & Skill Builder for Claude Code, OpenCode, and Gemini.
 
 Build custom agents and skills tailored to your codebase using natural language.
 
+A free alternative to summonaikit that leverages your already existing subscriptions to Claude and Gemini.
+
 ## Features
 
 - **Multi-Runtime Support**: Works with Claude Code, OpenCode, and Gemini
