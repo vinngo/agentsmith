@@ -4,26 +4,49 @@ description: Propose agents and skills for the user to approve.
 ---
 
 <prereqs>
-Firstly, read .agentsmith/codebase/CANDIDATES.md for context on proposed agents and skills. If that file doesn't exist or is blank: use `/agentmancy:analyze`. You MUST know what the proposed agents and skills are BEFORE interaction with the user.
+    First, read `.agentmancy/codebase/CANDIDATES.md` for context on proposed
+    agents and skills.
+
+    - If the file does not exist or is empty:
+      - Run the `/agentmancy:analyze` command once to generate candidates.
+      - After it completes, re-read `.agentmancy/codebase/CANDIDATES.md`.
+      - If it is still missing or empty, abort this skill with a brief
+        explanation to the user (do NOT guess candidates).
+
+    You MUST know what the proposed agents and skills are BEFORE interacting
+    with the user.
 </prereqs>
 
-<task>
-First present all the skills proposed for the user to select using the `AskUserQuestionTool (multiSelect: True)`
-- header: "Select Skills"
-- question: "Which skills would you like to install?"
-- options: Generate fields for each skill proposed, formatted as:
-  - "[skill name]" (what it does)
-  - (description)
 
-Secondly present all the agents proposed for the user to select using the `AskUserQuestionTool (multiSelect: True)`
-- header: "Select Agents"
-- question: "Which agents would you like to install?"
-- options: Generate fields for each agent proposed, formatted as:
-  - "[skill name]" (what it does)
-  - (description)
-  
-Do NOT include a **skip** or a "you decide" option.
+<task>
+    First, present all proposed skills for the user to select using the
+    AskUserQuestionTool with `multiSelect: true`:
+
+    - header: "Select Skills"
+    - question: "Which skills would you like to install?"
+    - options: One option per proposed skill, formatted as:
+      - label: "[skill_name]" — what it does
+      - description: Short description / when-to-use
+
+    Use the machine name (e.g., `checkout-verifier-skill`) as the option
+    value, and show the human-friendly name + description in the label.
+    
+    Secondly, present all proposed agents for the user to select using the
+    AskUserQuestionTool with `multiSelect: true`:
+
+    - header: "Select Agents"
+    - question: "Which agents would you like to install?"
+    - options: One option per proposed agent, formatted as:
+      - label: "[agent_name]" — what it does
+      - description: Short description / when-to-use
+
+    Again, use the machine name as the option value, and surface the human
+    name and description in the label.
+    
+    Do NOT include a "skip" or "you decide" option.
+
 </task>
+
 
 Once the user has submitted their response, dispatch builders in parallel:
 

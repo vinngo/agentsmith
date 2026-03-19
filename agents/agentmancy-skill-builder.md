@@ -1,6 +1,6 @@
 ---
 name: agentmancy-skill-builder
-description: Builds skill .md files from candidate specs and writes them to skills/.
+description: Builds skill .md files from candidate specs and writes them to skills/, reusing registry templates when available.
 tools: Read, Write, Glob, Bash, WebFetch
 model: sonnet
 ---
