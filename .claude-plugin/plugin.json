@@ -1,0 +1,8 @@
+{
+  "name": "agentmancy",
+  "description": "Custom Agent and Skill builder for Claude Code",
+  "version": "1.0.0",
+  "author": {
+    "name": "vinngo"
+  }
+}

@@ -1,6 +1,6 @@
 ---
-name: propose
-description: Propose agents and skills for the user to approve.
+name: draft
+description: Draft agents and skills for the user to approve.
 ---
 
 <prereqs>
